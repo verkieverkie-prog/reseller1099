@@ -75,6 +75,10 @@
     $('pro-upsell-card').classList.toggle('hidden', isPro);
     $('pro-unlocked-bar').classList.toggle('hidden', !isPro);
     $('pro-tools-card').classList.toggle('hidden', !isPro || parsedFiles.length === 0);
+    const freeExportUpsell = $('free-export-upsell');
+    if (freeExportUpsell) {
+      freeExportUpsell.classList.toggle('hidden', isPro);
+    }
     $('load-all-samples-btn').textContent = isPro
       ? 'Load All 4 Samples (Merge)'
       : 'Preview All 4 Merged (Pro)';
@@ -412,7 +416,7 @@
     checkProStatus();
     loadCogsFromStorage();
 
-    // Track clicks on any Stripe Payment Link CTA (topbar, upsell card, multi-file notice)
+    // Track clicks on any Stripe Payment Link CTA (topbar, locked results CTAs, upsell card, multi-file notice)
     document.addEventListener('click', function (e) {
       const link = e.target && e.target.closest ? e.target.closest('a[href^="https://buy.stripe.com/"]') : null;
       if (link) {
