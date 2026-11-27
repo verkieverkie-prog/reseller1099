@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reseller1099: Browser-Local 1099-K & Fee Reconciliation for Whatnot, Poshmark, Mercari & Etsy</title>
+  <meta name="description" content="Free 100% browser-local CSV checker for Whatnot, Poshmark, Mercari, and Etsy sellers. See what fees, shipping labels, and giveaways actually took from your payouts and why your 1099-K will not match your bank deposits.">
+  <link rel="stylesheet" href="styles.css">
+  <script data-goatcounter="https://reseller1099.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="logo" href="./">Reseller<span>1099</span></a>
+      <div class="nav-right">
+        <span class="badge-local">100% Browser-Local (Zero Upload)</span>
+        <span id="pro-badge" class="badge-pro hidden">PRO UNLOCKED</span>
+        <a class="btn btn-primary btn-sm no-print" href="https://buy.stripe.com/3cIcN5exMgYO6U96sDgA80i" target="_blank" rel="noopener">Unlock Pro ($24 one-time)</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>See what Whatnot, Poshmark, Mercari, and Etsy fees, shipping labels, and giveaways actually took from your payouts.</h1>
+      <p class="lead">Drop your payout CSV for an instant 1099-K vs bank deposit mismatch breakdown. Built for resellers who want real numbers without paying $10 to $50/mo for accounting software.</p>
+      <div class="privacy-bar">100% browser-local: your CSV never leaves your device. No signup, no server upload, works offline.</div>
+    </section>
+
+    <section class="card no-print">
+      <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="Upload reseller CSV files">
+        <h2>Drop your Whatnot, Poshmark, Mercari, or Etsy CSV here</h2>
+        <p>Free tier checks 1 CSV instantly with the full fee and 1099-K gap breakdown. Pro merges unlimited files across the full year.</p>
+        <span class="btn btn-primary">Choose CSV File(s)</span>
+        <input id="file-input" type="file" accept=".csv,text/csv" multiple class="hidden">
+      </div>
+
+      <div class="sample-row">
+        <span class="sample-label">Test in 2 seconds with a real-schema sample CSV:</span>
+        <button type="button" class="btn btn-secondary btn-sm" data-sample="whatnot">Whatnot Sample</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-sample="poshmark">Poshmark Sample</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-sample="mercari">Mercari Sample</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-sample="etsy">Etsy Sample</button>
+        <button type="button" id="load-all-samples-btn" class="btn btn-secondary btn-sm">Preview All 4 Merged (Pro)</button>
+      </div>
+    </section>
+
+    <section id="manual-mapper-card" class="card hidden no-print">
+      <h2>Manual Column Mapper (<span id="manual-filename"></span>)</h2>
+      <p style="color: var(--muted); font-size: 0.9rem;">This CSV has unrecognized headers (such as a Whatnot Ledger CSV or custom spreadsheet). Map your columns below and click Reconcile.</p>
+      <div class="form-grid" style="margin-bottom: 14px;">
+        <label class="field">Gross Sales Column<select id="map-gross"></select></label>
+        <label class="field">Platform Fees Column<select id="map-fees"></select></label>
+        <label class="field">Shipping Labels Column<select id="map-shipping"></select></label>
+        <label class="field">Refunds Column<select id="map-refunds"></select></label>
+        <label class="field">Net Payout Column<select id="map-net"></select></label>
+      </div>
+      <button type="button" id="apply-manual-map-btn" class="btn btn-primary">Reconcile File</button>
+    </section>
+
+    <section id="results-card" class="card hidden">
+      <div id="free-multi-notice" class="warn-list hidden no-print" style="margin-top: 0; margin-bottom: 14px;"></div>
+      <div id="loaded-files-bar" class="file-chip-list no-print"></div>
+      <h2 id="result-title" style="margin-top: 0;">Reconciliation Summary</h2>
+      <div id="kpi-grid" class="stats-grid"></div>
+      <div id="waterfall-box" class="waterfall"></div>
+      <div id="mismatch-note" class="note-box"></div>
+      <div id="warnings-box" class="warn-list hidden"></div>
+    </section>
+
+    <section id="pro-tools-card" class="card hidden">
+      <div class="export-bar no-print">
+        <button type="button" id="export-csv-btn" class="btn btn-primary">Download Schedule C Summary CSV</button>
+        <button type="button" id="print-pdf-btn" class="btn btn-secondary">Print / Save PDF Report</button>
+      </div>
+      <h3 style="margin: 0 0 6px;">Local COGS & Expenses Worksheet (Saved in Your Browser)</h3>
+      <p style="margin: 0 0 14px; color: var(--muted); font-size: 0.88rem;">Enter inventory figures (Beginning + Purchases - Ending) or a Direct COGS total to estimate Schedule C Line 4 and Line 31 Net Profit.</p>
+      <div class="form-grid" style="margin-bottom: 14px;">
+        <label class="field">Beginning Inventory ($)<input id="cogs-beg" type="text" placeholder="0.00"></label>
+        <label class="field">Inventory Purchases ($)<input id="cogs-purch" type="text" placeholder="0.00"></label>
+        <label class="field">Ending Inventory ($)<input id="cogs-end" type="text" placeholder="0.00"></label>
+        <label class="field">Or Direct COGS ($)<input id="cogs-direct" type="text" placeholder="0.00"></label>
+        <label class="field">Supplies / Poly Mailers ($)<input id="cogs-supplies" type="text" placeholder="0.00"></label>
+        <label class="field">Other Expenses ($)<input id="cogs-other" type="text" placeholder="0.00"></label>
+      </div>
+      <div id="cogs-calc-display" class="note-box" style="margin-bottom: 0;"></div>
+    </section>
+
+    <section id="pro-unlocked-bar" class="card hidden no-print" style="background: var(--ok-soft); border-color: #bbf7d0;">
+      <strong>Reseller1099 Pro is active on this browser.</strong> Drop up to 100 CSVs at once (e.g. 52 Whatnot weekly + 12 Etsy monthly + Poshmark + Mercari) to merge your full year, fill in COGS, and export your Schedule C CSV or PDF report.
+    </section>
+
+    <section id="pro-upsell-card" class="pro-banner no-print">
+      <h2>Upgrade to Reseller1099 Pro: $24 one-time (no subscription)</h2>
+      <p>Keep the 1-CSV fee and 1099-K checker free forever. Pay once via Stripe to unlock full-year multi-platform tax prep right in your browser.</p>
+      <ul class="pro-perks">
+        <li>Multi-CSV Full-Year Merge (52 Whatnot + 12 Etsy + Poshmark + Mercari)</li>
+        <li>Schedule C Line 1/2/4/8/10/18/27a Summary CSV Export</li>
+        <li>Print-Ready PDF Accountant Report</li>
+        <li>Browser-Local COGS & Supplies Worksheet</li>
+      </ul>
+      <div class="pro-actions">
+        <a class="btn btn-primary" style="background: #14b8a6; color: #042f2e;" href="https://buy.stripe.com/3cIcN5exMgYO6U96sDgA80i" target="_blank" rel="noopener">Unlock Pro Now ($24 one-time)</a>
+        <span style="font-size: 0.85rem; color: #cbd5e1;">Instant redirect back with Pro unlocked. Powered by Stripe.</span>
+      </div>
+      <div class="unlock-inline">
+        <label for="unlock-code-input">Already paid? Enter unlock code:</label>
+        <input id="unlock-code-input" type="text" placeholder="Enter code">
+        <button type="button" id="unlock-btn" class="btn btn-secondary btn-sm">Unlock</button>
+        <span id="unlock-msg"></span>
+      </div>
+    </section>
+
+    <section class="card no-print">
+      <h2 style="margin-top: 0;">Where to download your CSV on each platform</h2>
+      <div class="howto-grid">
+        <div class="howto-item">
+          <h3>Whatnot</h3>
+          <p>whatnot.com -> Seller Menu -> Finances -> Statements &amp; Reports -> <strong>Weekly Orders Report (CSV)</strong>. Supports both Title Case and UPPER_SNAKE_CASE exports and separates giveaways from refunds.</p>
+        </div>
+        <div class="howto-item">
+          <h3>Poshmark</h3>
+          <p>Web: Profile -> Order Activity -> <strong>Sales Report</strong> -> Email Report. Automatically skips Poshmark's 12 preamble lines and infers the hidden 20% / $2.95 Poshmark fee.</p>
+        </div>
+        <div class="howto-item">
+          <h3>Mercari</h3>
+          <p>Mercari.com -> Account -> Seller Dashboard -> <strong>Sales Report</strong> (or Yearly Reports). Recovers unescaped inch-marks in Item Titles and ignores buyer-paid fees.</p>
+        </div>
+        <div class="howto-item">
+          <h3>Etsy</h3>
+          <p>Shop Manager -> Finances -> <strong>Monthly statements</strong> -> Generate CSV. Subtracts buyer sales tax from Sale rows, excludes Deposit transfers, and keeps duplicate $0.20 listing fees.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="bug-section" class="card no-print">
+      <h2 style="margin-top: 0;">Did a platform change its CSV headers? Report a broken file</h2>
+      <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0;"><strong>Privacy warning:</strong> Never paste personal SSN, bank account numbers, or buyer names/addresses. Paste only the header row or 1 anonymized sample row.</p>
+      <form action="https://formsubmit.co/sponsorrateradar@proton.me" method="POST">
+        <input type="hidden" name="_subject" value="Reseller1099 Bug Report / CSV Sample">
+        <input type="hidden" name="_captcha" value="false">
+        <div class="form-grid" style="margin-bottom: 12px;">
+          <label class="field">Platform
+            <select name="platform">
+              <option value="Whatnot">Whatnot</option>
+              <option value="Poshmark">Poshmark</option>
+              <option value="Mercari">Mercari</option>
+              <option value="Etsy">Etsy</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label class="field">Your Email (optional, for fix notice)
+            <input type="email" name="email" placeholder="you@example.com">
+          </label>
+        </div>
+        <label class="field" style="margin-bottom: 12px;">Header row / issue details (no personal info)
+          <textarea name="details" rows="3" required placeholder="Example: Poshmark added a new column name or Mercari row count shifted..."></textarea>
+        </label>
+        <button type="submit" class="btn btn-secondary">Send Bug Report</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      Reseller1099 runs 100% locally in your browser. Nothing you drop into this page is ever uploaded to a server. Figures are estimates for bookkeeping and 1099-K reconciliation, not formal tax or legal advice.
+    </div>
+  </footer>
+
+  <script src="parser.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
