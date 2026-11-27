@@ -14,6 +14,29 @@
   // DOM helpers
   function $(id) { return document.getElementById(id); }
 
+  function trackEvent(path, title) {
+    try {
+      if (window.goatcounter && typeof window.goatcounter.count === 'function') {
+        window.goatcounter.count({
+          path: path,
+          title: title || path,
+          event: true
+        });
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  function trackEventWhenReady(path, title) {
+    if (trackEvent(path, title)) return;
+    window.addEventListener('load', function () {
+      if (!trackEvent(path, title)) {
+        setTimeout(function () { trackEvent(path, title); }, 800);
+      }
+    }, { once: true });
+  }
+
   function fmt(n) {
     const val = Number(n || 0);
     const abs = Math.abs(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -38,6 +61,7 @@
           const cleanUrl = window.location.pathname + window.location.hash;
           window.history.replaceState({}, document.title, cleanUrl);
         }
+        trackEventWhenReady('event/pro-unlocked', 'Pro unlocked via redirect');
       }
       isPro = localStorage.getItem(PRO_STORAGE_KEY) === '1';
     } catch (e) {
@@ -65,6 +89,7 @@
       heldExtraFilesCount = 0;
       msgEl.textContent = 'Pro unlocked on this browser.';
       msgEl.style.color = '#86efac';
+      trackEvent('event/pro-unlocked', 'Pro unlocked via manual code');
       updateProUI();
       render();
     } else {
@@ -160,11 +185,13 @@
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  function handleCSVInputs(items) {
+  function handleCSVInputs(items, isSample) {
     if (!items || items.length === 0) return;
     $('manual-mapper-card').classList.add('hidden');
     pendingManualFile = null;
     heldExtraFilesCount = 0;
+
+    const parsedPlatforms = [];
 
     if (!isPro) {
       if (items.length > 1) {
@@ -177,6 +204,7 @@
         showManualMapper({ filename: first.filename, text: first.text, rawHeaders: res.rawHeaders });
       } else {
         parsedFiles = [res];
+        if (res.platform) parsedPlatforms.push(res.platform);
       }
     } else {
       for (let i = 0; i < items.length; i++) {
@@ -186,9 +214,17 @@
           showManualMapper({ filename: item.filename, text: item.text, rawHeaders: res.rawHeaders });
         } else {
           parsedFiles.push(res);
+          if (res.platform && parsedPlatforms.indexOf(res.platform) === -1) {
+            parsedPlatforms.push(res.platform);
+          }
         }
       }
     }
+
+    if (!isSample && parsedPlatforms.length > 0) {
+      trackEvent('event/csv-parsed', 'CSV parsed: ' + parsedPlatforms.join(','));
+    }
+
     render();
   }
 
@@ -208,7 +244,9 @@
         r.readAsText(file);
       });
     });
-    Promise.all(readers).then(handleCSVInputs);
+    Promise.all(readers).then(function (items) {
+      handleCSVInputs(items, false);
+    });
   }
 
   function render() {
@@ -374,6 +412,14 @@
     checkProStatus();
     loadCogsFromStorage();
 
+    // Track clicks on any Stripe Payment Link CTA (topbar, upsell card, multi-file notice)
+    document.addEventListener('click', function (e) {
+      const link = e.target && e.target.closest ? e.target.closest('a[href^="https://buy.stripe.com/"]') : null;
+      if (link) {
+        trackEvent('event/stripe-checkout-clicked', 'Stripe checkout clicked');
+      }
+    });
+
     const dz = $('dropzone');
     const fileInput = $('file-input');
 
@@ -402,7 +448,8 @@
         const key = btn.getAttribute('data-sample');
         const sample = P.SAMPLES[key];
         if (!sample) return;
-        handleCSVInputs([{ filename: sample.filename, text: sample.content }]);
+        trackEvent('event/sample-clicked', 'Sample clicked: ' + key);
+        handleCSVInputs([{ filename: sample.filename, text: sample.content }], true);
       });
     });
 
@@ -410,12 +457,13 @@
       const all = ['whatnot', 'poshmark', 'mercari', 'etsy'].map(function (k) {
         return { filename: P.SAMPLES[k].filename, text: P.SAMPLES[k].content };
       });
+      trackEvent('event/sample-clicked', 'Sample clicked: all-4');
       if (!isPro) {
-        handleCSVInputs(all);
+        handleCSVInputs(all, true);
         $('pro-upsell-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else {
         parsedFiles = [];
-        handleCSVInputs(all);
+        handleCSVInputs(all, true);
       }
     });
 
@@ -446,6 +494,7 @@
       } else {
         parsedFiles = [res];
       }
+      trackEvent('event/csv-parsed', 'CSV parsed: manual');
       pendingManualFile = null;
       $('manual-mapper-card').classList.add('hidden');
       render();
