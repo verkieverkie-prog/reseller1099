@@ -72,6 +72,10 @@
 
   function updateProUI() {
     $('pro-badge').classList.toggle('hidden', !isPro);
+    const topbarProBtn = $('topbar-pro-btn');
+    if (topbarProBtn) {
+      topbarProBtn.classList.toggle('hidden', isPro);
+    }
     $('pro-upsell-card').classList.toggle('hidden', isPro);
     $('pro-unlocked-bar').classList.toggle('hidden', !isPro);
     $('pro-tools-card').classList.toggle('hidden', !isPro || parsedFiles.length === 0);
@@ -79,9 +83,10 @@
     if (freeExportUpsell) {
       freeExportUpsell.classList.toggle('hidden', isPro);
     }
-    $('load-all-samples-btn').textContent = isPro
-      ? 'Load All 4 Samples (Merge)'
-      : 'Preview All 4 Merged (Pro)';
+    const allSamplesBtn = $('load-all-samples-btn');
+    if (allSamplesBtn) {
+      allSamplesBtn.classList.toggle('hidden', !isPro);
+    }
   }
 
   function unlockWithCode(raw) {
@@ -458,17 +463,13 @@
     });
 
     $('load-all-samples-btn').addEventListener('click', function () {
+      if (!isPro) return;
       const all = ['whatnot', 'poshmark', 'mercari', 'etsy'].map(function (k) {
         return { filename: P.SAMPLES[k].filename, text: P.SAMPLES[k].content };
       });
       trackEvent('event/sample-clicked', 'Sample clicked: all-4');
-      if (!isPro) {
-        handleCSVInputs(all, true);
-        $('pro-upsell-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } else {
-        parsedFiles = [];
-        handleCSVInputs(all, true);
-      }
+      parsedFiles = [];
+      handleCSVInputs(all, true);
     });
 
     // Manual unlock code

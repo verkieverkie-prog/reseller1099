@@ -15,7 +15,7 @@
       <div class="nav-right">
         <span class="badge-local">100% Browser-Local (Zero Upload)</span>
         <span id="pro-badge" class="badge-pro hidden">PRO UNLOCKED</span>
-        <a class="btn btn-primary btn-sm no-print" href="https://buy.stripe.com/3cIcN5exMgYO6U96sDgA80i" target="_blank" rel="noopener">Unlock Pro ($24 one-time)</a>
+        <a id="topbar-pro-btn" class="btn btn-primary btn-sm no-print" href="https://buy.stripe.com/3cIcN5exMgYO6U96sDgA80i" target="_blank" rel="noopener">Unlock Pro ($24 one-time)</a>
       </div>
     </div>
   </header>
@@ -29,8 +29,8 @@
 
     <section class="card no-print">
       <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="Upload reseller CSV files">
-        <h2>Drop your Whatnot, Poshmark, Mercari, or Etsy CSV here</h2>
-        <p>Free tier checks 1 CSV instantly with the full fee and 1099-K gap breakdown. Pro merges unlimited files across the full year.</p>
+        <h2>Drop your Whatnot, Poshmark, Mercari, Etsy, or eBay CSV here</h2>
+        <p>Works with Whatnot, Poshmark, Mercari, Etsy, plus a built-in manual column mapper for eBay or any other seller CSV. Free tier checks 1 CSV instantly; Pro merges unlimited files across the full year.</p>
         <span class="btn btn-primary">Choose CSV File(s)</span>
         <input id="file-input" type="file" accept=".csv,text/csv" multiple class="hidden">
       </div>
@@ -41,13 +41,13 @@
         <button type="button" class="btn btn-secondary btn-sm" data-sample="poshmark">Poshmark Sample</button>
         <button type="button" class="btn btn-secondary btn-sm" data-sample="mercari">Mercari Sample</button>
         <button type="button" class="btn btn-secondary btn-sm" data-sample="etsy">Etsy Sample</button>
-        <button type="button" id="load-all-samples-btn" class="btn btn-secondary btn-sm">Preview All 4 Merged (Pro)</button>
+        <button type="button" id="load-all-samples-btn" class="btn btn-secondary btn-sm hidden">Load All 4 Samples (Merge)</button>
       </div>
     </section>
 
     <section id="manual-mapper-card" class="card hidden no-print">
       <h2>Manual Column Mapper (<span id="manual-filename"></span>)</h2>
-      <p style="color: var(--muted); font-size: 0.9rem;">This CSV has unrecognized headers (such as a Whatnot Ledger CSV or custom spreadsheet). Map your columns below and click Reconcile.</p>
+      <p style="color: var(--muted); font-size: 0.9rem;">This CSV has unrecognized headers (such as an eBay CSV, Whatnot Ledger CSV, or custom spreadsheet). Map your columns below and click Reconcile.</p>
       <div class="form-grid" style="margin-bottom: 14px;">
         <label class="field">Gross Sales Column<select id="map-gross"></select></label>
         <label class="field">Platform Fees Column<select id="map-fees"></select></label>
@@ -91,7 +91,7 @@
     </section>
 
     <section id="pro-unlocked-bar" class="card hidden no-print" style="background: var(--ok-soft); border-color: #bbf7d0;">
-      <strong>Reseller1099 Pro is active on this browser.</strong> Drop up to 100 CSVs at once (e.g. 52 Whatnot weekly + 12 Etsy monthly + Poshmark + Mercari) to merge your full year, fill in COGS, and export your Schedule C CSV or PDF report.
+      <strong>Reseller1099 Pro is active on this browser.</strong> Drop up to 100 CSVs at once (e.g. 52 Whatnot weekly + 12 Etsy monthly + Poshmark + Mercari) to merge your full year, fill in COGS, and export your Schedule C CSV or PDF report. Save your unlock code for another browser or device: <code style="font-weight: 700; padding: 2px 6px; background: #fff; border: 1px solid #86efac; border-radius: 4px;">R1099PRO26</code>
     </section>
 
     <section id="pro-upsell-card" class="pro-banner no-print">
